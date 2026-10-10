@@ -1,7 +1,0 @@
-# Editor / OS cruft
-*.swp
-*~
-.DS_Store
-
-# Local overrides (if you add any)
-*.local

@@ -1,8 +1,15 @@
-# Wallpaper picker
+# Wallpaper picker (hyprpaper)
 
 A standalone Quickshell wallpaper picker: a fullscreen coverflow strip of your
-wallpapers. It runs as its **own Quickshell instance** (separate process), so it
-never touches the bar's shell.
+wallpapers, applied through **hyprpaper**. It runs as its own Quickshell instance
+(separate process), so it never touches the bar's shell.
+
+> [!NOTE]
+> This is the **hyprpaper** version. It works, but development has moved to
+> [`hyprland-wallpaper-picker`](https://github.com/TheZ3rg/hyprland-wallpaper-picker),
+> which uses **awww** instead — its wallpaper transitions keep playing even after
+> the picker is closed, and it also supports animated (GIF) wallpapers. This
+> repository is kept for reference.
 
 ## Usage
 
@@ -11,52 +18,50 @@ never touches the bar's shell.
 | `SUPER + W` | open / close the picker (toggles) |
 | `←` / `→` | move the selection |
 | mouse scroll | move the selection |
-| `Enter` or click | apply the selected wallpaper and close |
-| `Esc` | close without applying |
+| `Enter` or click | apply the selected wallpaper |
+| `Esc` | close |
 
-It opens on the focused monitor, shows the current wallpaper dimmed behind the
+It opens on the focused monitor, shows the current wallpaper blurred behind the
 strip, and quits when closed (no background process).
 
 ## How it works
 
-- **Launcher:** `scripts/open-picker.sh` (called by the Hyprland bind). If the
+- **Launcher:** `scripts/open-picker.sh` (bound in your Hyprland config). If the
   picker is already running it closes it via IPC, otherwise it starts
   `qs -p ~/dev/projects/linux-rice`.
 - **Scan + thumbnails:** `WallpaperModel.qml` runs `scripts/sync-thumbs.sh`,
   which lists `Config.wallpaperDir`, generates cached thumbnails (ImageMagick)
   and prints a manifest the model parses. Thumbnails live in
-  `~/.cache/qs-wallpaper-picker/` and are rebuilt automatically; you can delete
-  the folder at any time.
+  `~/.cache/qs-wallpaper-picker/` and are rebuilt automatically.
 - **UI:** `WallpaperPicker.qml` (the fullscreen layer window) + `WallpaperStrip.qml`
-  (the coverflow). Items are positioned by their *scaled* width, which gives the
-  tight, tapered look toward the edges.
+  (the coverflow). `BackdropBaker.qml` + `scripts/backdrop.sh` bake a blurred
+  copy of the current wallpaper for the backdrop (screen-sized, so there is no
+  edge fade and no scaling).
 - **Apply:** `scripts/apply.sh` sets the wallpaper through hyprpaper's IPC and
   rewrites the `wallpaper {}` block in `hyprpaper.conf` so it is restored on
-  login. No animated wallpapers.
+  login. The reveal transition plays in the picker's background.
 
 ## Configuration
 
 Everything is in `Config.qml`:
 
-- `wallpaperDir` — the folder to scan (single folder, not recursive).
-- `extensions` — which file extensions count as wallpapers.
-- `thumbnails.mode` — `"cover"` (fixed portrait crop) or `"preserve"` (keep each
-  image's aspect ratio).
-- `thumbnails.width` / `height` / `cornerRadius` — cache size and corner rounding
-  (`0` = rectangular strips).
-- `itemHeightRatio` — how tall the centred item is (fraction of screen height).
-- `coverflow.enabled` / `centerScale` / `edgeScale` / `falloffRange` /
-  `spacingRatio` — the coverflow look; set `enabled: false` for a flat strip.
-- `backdrop` — `"wallpaper"` (blurred current wallpaper, default) or `"desktop"`
-  (blur the live desktop/windows via ext-background-effect-v1).
-- `backgroundDim` / `backgroundBlur` — backdrop dim and wallpaper blur radius.
-- `topMargin` — inset below the bar so the bar stays visible above the overlay.
-- `fitMode` — hyprpaper `fit_mode` (`cover`, `contain`, `tile`, `fill`).
-- `regenerateTheme` — reserved for regenerating the Material You palette on
-  apply (not wired up yet).
+- `wallpaperDir`, `extensions`.
+- `thumbnails.mode` (`cover` / `preserve`), `width`, `height`, `cornerRadius`, `cacheDir`.
+- `itemHeightRatio`, `visibleRange`.
+- `coverflow.*` (`centerScale`, `edgeScale`, `falloffRange`, `spacingRatio`; set
+  `enabled: false` for a flat strip).
+- `backdrop` (`wallpaper` / `desktop`), `backgroundDim`, `backgroundBlur`,
+  `topMargin`, `animationDuration`, `thumbnailFadeInDuration`.
+- `closeOnApply`.
+- `applyAnimation.type` (`none` / `circle` / `wipe`), `applyAnimation.duration`.
+- `hyprpaperConf`, `fitMode`.
 
 ## Manual run
 
 ```bash
 qs -p ~/dev/projects/linux-rice
 ```
+
+## Requirements
+
+Quickshell, ImageMagick (`magick`), hyprpaper, bash, and coreutils (`md5sum`).
