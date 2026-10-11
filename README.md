@@ -7,9 +7,7 @@ A wallpaper picker for Hyprland, made using Quickshell.
 > [!NOTE]
 > This is the **hyprpaper** version. It works, but development has moved to
 > [`hyprland-wallpaper-picker`](https://github.com/TheZ3rg/hyprland-wallpaper-picker),
-> which uses **awww** instead — its wallpaper transitions keep playing even after
-> the picker is closed, and it also supports animated (GIF) wallpapers. This
-> repository is kept just in case.
+> which uses **awww** instead. This repository is kept just in case.
 
 ## Configuration
 
